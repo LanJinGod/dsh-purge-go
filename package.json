@@ -24,11 +24,11 @@
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OWNER/dsh-purge-go.git"
+    "url": "git+https://github.com/LanJinGod/dsh-purge-go.git"
   },
-  "homepage": "https://github.com/OWNER/dsh-purge-go#readme",
+  "homepage": "https://github.com/LanJinGod/dsh-purge-go#readme",
   "bugs": {
-    "url": "https://github.com/OWNER/dsh-purge-go/issues"
+    "url": "https://github.com/LanJinGod/dsh-purge-go/issues"
   },
   "type": "module",
   "main": "lib/index.js",

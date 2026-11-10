@@ -1,7 +1,5 @@
 # dsh-purge-go
 
-> **占位符提示**：本文所有 `OWNER/dsh-purge-go`、`security@example.com` 都是占位符，发布前按文末[发布前替换清单](#发布前替换清单)替换。
-
 把桌面版 **dsh-purge** 的「提示词注入」内核重做成一份**只使用 DSH 官方扩展点**的插件包：把一段正文顶到 system prompt 最前面、压掉会抢身份的三段官方文案，外加题材分类扩展层、地区门、拒答续跑、目标卡、23 条红队技能与一份红队预设。零运行时依赖，不改引擎文件、不解 asar、不重启宿主。
 
 一句话定位：**给 DSH 引擎加一层「破甲」提示词——一份明文正文 + 一组官方钩子，手机 PRoot、SSH 远程主机、桌面版 DSH 装同一份代码。**
@@ -10,7 +8,7 @@
 [![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.2_.._0.3.0--0-5b8def)](https://www.npmjs.com/package/@deepseek-ai/dsh)
 [![license](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 [![deps](https://img.shields.io/badge/deps-0-brightgreen)](package.json)
-[![CI](https://github.com/OWNER/dsh-purge-go/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/dsh-purge-go/actions/workflows/ci.yml)
+[![CI](https://github.com/LanJinGod/dsh-purge-go/actions/workflows/ci.yml/badge.svg)](https://github.com/LanJinGod/dsh-purge-go/actions/workflows/ci.yml)
 
 > 前四个是 shields.io 静态徽章，写死的是本包自己的事实。CI 徽章指向本仓库 `.github/workflows/ci.yml`，工作流推上去之前会显示 404，这是正常的。
 
@@ -433,19 +431,16 @@ dsh-purge-go/
 - **dsh-purge** —— 桌面版的注入内核与默认正文，本包是它的独立重写；
 - **DeepSeek Harness** —— 引擎与官方扩展点，没有 `systemPrompt` / `system-prompt/assemble` / `agent/*` 这些口子，这份包只能继续改引擎文件。
 
-## 发布前替换清单
+## 发布信息
 
-| 占位符 | 出现位置 | 替换成 |
-|---|---|---|
-| `OWNER` | 文首 CI 徽章（2 处 URL） | GitHub 用户名或组织名 |
-| `security@example.com` | §18 安全披露 | 真实安全邮箱 |
-| 仓库 slug `OWNER/dsh-purge-go` | 徽章、Release 链接 | 真实仓库地址 |
+| 项 | 值 |
+|---|---|
+| 仓库 | <https://github.com/LanJinGod/dsh-purge-go> |
+| 版本 / 标签 | `0.2.2` / `v0.2.2` |
+| 许可 | AGPL-3.0（见 [LICENSE](LICENSE)） |
+| 安全披露 | `security@example.com`（换成你的真实邮箱即可） |
 
-一次性替换（README / CHANGELOG / package.json 里的 `OWNER` 全部换掉）：
-
-```bash
-bash scripts/set-repo-owner.sh <你的GitHub用户名>          # 先 --dry-run 看会改哪些行
-```
+仓库地址由 `scripts/set-repo-owner.sh <owner>` 一次性写入 README / CHANGELOG / `package.json`；fork 后改自己的名字再跑一次即可。
 
 顺带确认：`.github/workflows/ci.yml` 已推送（否则徽章 404）；`LICENSE` 为 AGPL-3.0 全文；`CHANGELOG.md` 的 `0.2.2` 段与本次 tag 一致；Release 三个资产齐全且 `sha256sums.txt` 与它们对得上。
 

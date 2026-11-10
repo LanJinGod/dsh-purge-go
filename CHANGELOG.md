@@ -56,6 +56,6 @@
 - `agent/pre-step` 过滤 mnemon 每一步塞进来的记忆消息（`stripMnemon: false` 可关）。
 - `/purge` 命令组、5 个工具、dsh-go 状态条 + 2 个面板 + 1 个加号工具，工具卡预算 8 KiB。
 
-[0.2.2]: https://github.com/OWNER/dsh-purge-go/releases/tag/v0.2.2
-[0.2.0]: https://github.com/OWNER/dsh-purge-go/releases/tag/v0.2.0
-[0.1.0]: https://github.com/OWNER/dsh-purge-go/releases/tag/v0.1.0
+[0.2.2]: https://github.com/LanJinGod/dsh-purge-go/releases/tag/v0.2.2
+[0.2.0]: https://github.com/LanJinGod/dsh-purge-go/releases/tag/v0.2.0
+[0.1.0]: https://github.com/LanJinGod/dsh-purge-go/releases/tag/v0.1.0
