@@ -58,8 +58,11 @@ TMPD=$(mktemp -d)
 trap 'rm -rf "$TMPD"' EXIT
 mkdir -p "$TMPD/profiles/web"
 sed -n '/^__PAYLOAD_BEGIN__$/,/^__PAYLOAD_END__$/p' "$SELF" | sed '1d;$d' | base64 -d > "$TMPD/pkg.tgz"
-tar -tzf "$TMPD/pkg.tgz" | grep -q '^package/lib/index.js$' || die 'payload 里没有 lib/index.js'
-tar -tzf "$TMPD/pkg.tgz" | grep -q '^package/LICENSE$' || die 'payload 里没有 LICENSE'
+# 注意：不要写成 tar | grep -q —— grep 提前退出会让 tar 收到 SIGPIPE，
+# pipefail 下整条管道变成失败，误报「payload 里没有 …」。
+tar -tzf "$TMPD/pkg.tgz" > "$TMPD/pkg.list" || die 'payload tar 无法列出内容'
+grep -qxF 'package/lib/index.js' "$TMPD/pkg.list" || die 'payload 里没有 lib/index.js'
+grep -qxF 'package/LICENSE' "$TMPD/pkg.list" || die 'payload 里没有 LICENSE'
 DSH_HOME="$TMPD" bash "$SELF" --check >/dev/null || die '安装器 --check 失败'
 
 # 5. 真装一遍：npm pack 的 package/ 顶层要能变成 <home>/dsh-go/plugins/dsh-purge-go
