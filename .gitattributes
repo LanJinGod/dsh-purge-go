@@ -1,0 +1,34 @@
+# 全仓库按文本处理并统一 LF，避免 Windows 上 checkout 出 CRLF 破坏 shebang / 测试
+* text=auto eol=lf
+
+# 脚本与工作流必须是 LF（GitHub Actions 与 bash 都按行解析）
+*.sh text eol=lf
+*.bash text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.mjs text eol=lf
+*.js text eol=lf
+
+# 归档类资产按二进制存，不做换行转换
+*.tgz binary
+*.tar binary
+*.gz binary
+*.zip binary
+*.bundle binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+
+# 发布说明按普通 markdown 文本处理（release-notes/v0.2.2.md 等）
+release-notes/*.md text eol=lf
+docs/*.md text eol=lf
+
+# 分类 / 网段数据按原始字节保留：测试对内容做逐字节比较，禁止任何文本规范化
+assets/*.json -text
+
+# 默认正文按原始字节保留（含 CRLF）：插件按字节写盘，规范化会改正文体积与哈希
+assets/default-prompt.md -text
+# 杂项：diff 里不要把提示词当代码统计
+assets/default-prompt.md linguist-documentation
+skills/**/*.md linguist-documentation

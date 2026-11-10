@@ -1,0 +1,32 @@
+# ---- 依赖与构建产物 ----
+node_modules/
+dist/
+*.tgz
+sha256sums.txt
+
+# ---- 日志与临时文件 ----
+*.log
+npm-debug.log*
+.tmp/
+tmp/
+*.tmp
+
+# ---- 平台垃圾文件 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 本机临时 DSH_HOME（引擎烟测 / 插件加载会往里写状态与会话） ----
+.dsh-home/
+.dsh_home/
+dsh-home/
+*.dsh-home/
+.purge-go-home/
+
+# ---- 编辑器 ----
+.vscode/
+.idea/
+*.swp
+
+# ---- 发布脚本的中间产物 ----
+dist/bundle-*/

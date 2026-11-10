@@ -1,0 +1,145 @@
+{
+  "name": "dsh-purge-go",
+  "version": "0.2.2",
+  "description": "Standalone port of dsh-purge for dsh-go (Android/PRoot + desktop): prompt-inject kernel, region gate, refusal-recover, objective card, redteam skills & preset — zero deps, no engine patching, no PowerShell.",
+  "keywords": [
+    "dsh",
+    "dsh-go",
+    "dshbox",
+    "deepseek-harness",
+    "cordis",
+    "cordis-plugin",
+    "plugin",
+    "bundle",
+    "prompt-injection",
+    "system-prompt",
+    "android",
+    "proot",
+    "redteam",
+    "agpl"
+  ],
+  "author": {
+    "name": "YG"
+  },
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OWNER/dsh-purge-go.git"
+  },
+  "homepage": "https://github.com/OWNER/dsh-purge-go#readme",
+  "bugs": {
+    "url": "https://github.com/OWNER/dsh-purge-go/issues"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./view": "./lib/view.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "LICENSE",
+    "lib",
+    "assets",
+    "skills",
+    "presets",
+    "cordis.patch.yml",
+    "README.md",
+    "package.json",
+    "NOTICE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "smoke": "node scripts/engine-smoke.mjs",
+    "check": "node scripts/kit-check.mjs",
+    "pack": "npm pack --pack-destination dist",
+    "release:dry": "bash scripts/publish-github.sh --dry-run",
+    "publish:github": "bash scripts/publish-github.sh"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dshGo": {
+    "v": 1,
+    "title": {
+      "zh": "破甲",
+      "en": "Purge"
+    },
+    "icon": "wrench",
+    "contributes": {
+      "composer.strip": [
+        {
+          "id": "state",
+          "icon": "wrench",
+          "panel": "purge"
+        }
+      ],
+      "composer.actions": [
+        {
+          "id": "toggle",
+          "label": {
+            "zh": "破甲开关",
+            "en": "Purge"
+          },
+          "icon": "power"
+        },
+        {
+          "id": "reload",
+          "label": {
+            "zh": "重读正文",
+            "en": "Reload"
+          },
+          "icon": "refresh"
+        }
+      ],
+      "composer.tools": [
+        {
+          "id": "body",
+          "label": {
+            "zh": "正文",
+            "en": "Prompt"
+          },
+          "icon": "document",
+          "panel": "prompt"
+        }
+      ],
+      "panels": [
+        {
+          "id": "purge",
+          "title": {
+            "zh": "破甲",
+            "en": "Purge"
+          },
+          "icon": "wrench",
+          "placement": [
+            "session.tab",
+            "features"
+          ]
+        },
+        {
+          "id": "prompt",
+          "title": {
+            "zh": "提示词",
+            "en": "Prompt"
+          },
+          "icon": "document",
+          "placement": [
+            "session.tab"
+          ],
+          "presentation": "sheet"
+        }
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=22.19",
+    "dsh": ">=0.2.1-rc.2 <0.3.0-0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

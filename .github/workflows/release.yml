@@ -1,0 +1,163 @@
+# dsh-purge-go 发布：推 v* tag 时跑测试 → 校验版本 → 打包 → 生成 sha256 → 建 GitHub Release。
+# 资产（与 scripts/build-selfinstall.sh 的产物名严格一致）：
+#   dsh-purge-go-<ver>.tgz
+#   dsh-purge-go-<ver>-selfinstall.sh
+#   sha256sums.txt
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# 建 Release / 传资产需要写权限
+permissions:
+  contents: write
+
+# 同一个 tag 不并发发布
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: release ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 检出代码（带全部 tag，供 release notes 与版本比对）
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          check-latest: false
+
+      - name: 单元测试（node --test，56 例）
+        run: npm test --silent
+
+      - name: 校验 tag 与 package.json 版本一致
+        id: ver
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          ver="$(node -p "require('./package.json').version")"
+
+          case "$tag" in
+            v*) tag_ver="${tag#v}" ;;
+            *)
+              echo "::error title=tag 格式::tag 必须是 v<version> 形式，当前是 ${tag}"
+              exit 1
+              ;;
+          esac
+
+          if [ "$tag_ver" != "$ver" ]; then
+            echo "::error title=版本不一致::tag ${tag}（版本 ${tag_ver}）与 package.json 的 version ${ver} 不一致；先改 package.json 再重打 tag。"
+            exit 1
+          fi
+
+          echo "ver=${ver}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: 打包并生成校验和
+        # scripts/build-selfinstall.sh 一次产出 tgz + selfinstall + sha256sums，并自检安装器
+        # （payload 可解、--check、实装 + profile 登记 + 软链）。它不在时退回 npm pack 兜底。
+        env:
+          VER: ${{ steps.ver.outputs.ver }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+
+          if [ -f scripts/build-selfinstall.sh ]; then
+            echo "::notice title=pack::使用 scripts/build-selfinstall.sh 生成三个资产"
+            OUT=dist bash scripts/build-selfinstall.sh
+          else
+            echo "::notice title=pack::没有 scripts/build-selfinstall.sh，走 npm pack 兜底"
+            npm pack --pack-destination dist
+            selfinstall=""
+            shopt -s nullglob
+            for f in ./*-selfinstall.sh; do selfinstall="$f"; break; done
+            shopt -u nullglob
+            if [ -n "$selfinstall" ]; then
+              cp "$selfinstall" "dist/dsh-purge-go-${VER}-selfinstall.sh"
+            else
+              echo "::notice title=selfinstall::仓库根没有 *-selfinstall.sh，本次不带自解压安装器"
+            fi
+            (
+              cd dist
+              : > sha256sums.txt
+              for f in ./*.tgz ./*-selfinstall.sh; do
+                [ -f "$f" ] || continue
+                sha256sum "$f" >> sha256sums.txt
+              done
+            )
+          fi
+
+          # 资产名必须与发布脚本、README 里的下载命令一致；缺 tgz / sha256sums 直接失败
+          test -f "dist/dsh-purge-go-${VER}.tgz" \
+            || { echo "::error::缺 dist/dsh-purge-go-${VER}.tgz"; exit 1; }
+          test -f "dist/sha256sums.txt" \
+            || { echo "::error::缺 dist/sha256sums.txt"; exit 1; }
+          if [ ! -f "dist/dsh-purge-go-${VER}-selfinstall.sh" ]; then
+            echo "::warning title=selfinstall::本次没有自解压安装器，Release 只带 tgz + sha256sums.txt"
+          fi
+
+          echo '--- sha256sums.txt ---'
+          cat dist/sha256sums.txt
+          echo '--- dist ---'
+          ls -l dist
+
+      - name: 找本地 release notes
+        id: notes
+        run: |
+          set -euo pipefail
+          # 优先 release-notes/<tag>.md（例如 release-notes/v0.2.2.md），再退回仓库根的通用文件名
+          for cand in "release-notes/${GITHUB_REF_NAME}.md" release-notes.md RELEASE_NOTES.md docs/release-notes.md; do
+            if [ -f "$cand" ]; then
+              echo "path=${cand}" >> "$GITHUB_OUTPUT"
+              echo "::notice title=release notes::使用 ${cand}"
+              exit 0
+            fi
+          done
+          echo "path=" >> "$GITHUB_OUTPUT"
+          echo "::notice title=release notes::没有本地 release notes 文件，改用 GitHub 自动生成的 notes"
+
+      - name: 发布（有本地 release notes，正文读文件）
+        if: steps.notes.outputs.path != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: dsh-purge-go ${{ steps.ver.outputs.ver }}
+          body_path: ${{ steps.notes.outputs.path }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: false
+          files: |
+            dist/*.tgz
+            dist/*-selfinstall.sh
+            dist/sha256sums.txt
+
+      - name: 发布（无本地 release notes，用自动生成）
+        if: steps.notes.outputs.path == ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: dsh-purge-go ${{ steps.ver.outputs.ver }}
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: false
+          files: |
+            dist/*.tgz
+            dist/*-selfinstall.sh
+            dist/sha256sums.txt
+
+      - name: 汇总
+        run: |
+          set -euo pipefail
+          echo "Release: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
+          ls -l dist

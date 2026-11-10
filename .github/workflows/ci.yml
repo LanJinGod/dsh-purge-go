@@ -1,0 +1,75 @@
+# dsh-purge-go CI：Node 22/24 双档跑单测，并把 npm pack 产物留档。
+# 零运行时依赖 —— 不装包、不配 setup-node 的 cache（没有 lockfile，配了反而报错）。
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# 权限最小化：只读仓库内容，CI 不写任何东西
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test / node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        # engines 下限是 22.19，所以 22.x 与 24.x 两档都要过
+        node: ['22.x', '24.x']
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: false
+
+      - name: 打印运行时版本
+        run: |
+          node -v
+          npm -v
+
+      - name: 单元测试（node --test，56 例）
+        # package.json 的 test 就是 node --test test/*.test.js，等价手敲同一条命令
+        run: npm test --silent
+
+      - name: 引擎烟测（best-effort：找不到引擎就跳过）
+        # 需要真实 DSH 引擎目录；CI 里通常没有，因此只提示、不阻断
+        run: |
+          if [ -n "${DSH_ENGINE_DIR:-}" ] && [ -d "${DSH_ENGINE_DIR}" ]; then
+            node scripts/engine-smoke.mjs \
+              || echo "::warning::engine-smoke 未通过（best-effort，不阻断 job）"
+          else
+            echo "::notice title=engine-smoke::未设置可用的 DSH_ENGINE_DIR，跳过"
+          fi
+
+      - name: plugin-kit 校验（best-effort：找不到 kit 就跳过）
+        # 需要 dsh-go sdk/plugin-kit；缺省路径 ../_ref/kit 在 CI 里不存在
+        run: |
+          kit="${DSH_GO_KIT:-}"
+          if [ -n "$kit" ] && [ -f "$kit/bin/check.mjs" ]; then
+            node scripts/kit-check.mjs \
+              || echo "::warning::kit-check 未通过（best-effort，不阻断 job）"
+          else
+            echo "::notice title=kit-check::未找到 dsh-go plugin-kit（DSH_GO_KIT 未设置），跳过"
+          fi
+
+      - name: 打包 npm pack
+        run: |
+          npm pack
+          ls -l ./*.tgz
+
+      - name: 上传 tgz 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsh-purge-go-tgz-node${{ matrix.node }}
+          path: '*.tgz'
+          if-no-files-found: error
+          retention-days: 14

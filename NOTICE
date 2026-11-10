@@ -1,0 +1,41 @@
+dsh-purge-go
+Copyright (C) 2026 YG
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Full license text: ./LICENSE (AGPL-3.0, 19 November 2007).
+
+--------------------------------------------------------------------------------
+第三方与来源说明
+
+1. DSH / DeepSeek Harness 引擎与 Cordis 插件体系
+   https://github.com/deepseek-ai/deepseek-harness
+   本包是运行在 DSH 引擎上的插件，通过官方扩展点（systemPrompt.section、
+   system-prompt/assemble waterfall、agent/pre-step、agent/status、tools、
+   commands、dshGo 桥接）接入，不包含也不修改引擎源码。
+
+2. dsh-go 的插件协议与 dshGo 清单（package.json 的 dshGo 字段）
+   https://github.com/ccch1mneyyy/dsh-Go
+   清单结构、贡献点（composer.strip / composer.actions / composer.tools /
+   panels）与工具卡协议按该项目公开的插件协议实现。
+
+3. dsh-purge 的默认提示词正文
+   assets/default-prompt.md 取自上游 dsh-purge 的内置正文，解密后原样保留，
+   仅作为「开箱可用的默认正文」分发；它会写入 <DSH_HOME>/prompt-inject.md，
+   用户可随时替换或删除。若上游对再分发有异议，请提交 issue，我们会改为
+   不随包分发、由用户自备正文。
+
+4. 随包红队技能（skills/redteam/*.md）与预设（presets/redteam/）
+   本项目自行撰写的操作说明与 Cordis 预设，不含第三方受版权保护的文本。
+
+若你认为上述任一项的署名或授权方式需要调整，请通过 SECURITY.md 里的渠道联系维护者。
